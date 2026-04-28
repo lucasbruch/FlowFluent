@@ -182,8 +182,57 @@
     #test-result { font-size: 12px; color: #52525b; flex: 1; }
     #test-result.ok  { color: #16a34a; }
     #test-result.err { color: #dc2626; }
+    #test-result.warn { color: #ca8a04; }
 
-    /* ── Suggested models ── */
+    .status-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .status-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      color: #52525b;
+      line-height: 1.45;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      margin-top: 4px;
+      background: #a1a1aa;
+      flex-shrink: 0;
+    }
+
+    .status-item.ok .status-dot { background: #16a34a; }
+    .status-item.warn .status-dot { background: #ca8a04; }
+    .status-item.err .status-dot { background: #dc2626; }
+
+    .status-copy {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .origin-setup {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f2;
+    }
+
+    .origin-setup.hidden { display: none; }
+
+    .origin-setup-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6366f1;
+      margin-bottom: 7px;
+    }
+
+    /* ── Model catalog ── */
 
     .suggestions { display: flex; flex-direction: column; gap: 8px; }
 
@@ -195,6 +244,12 @@
       border: 1px solid #e4e4e7;
       border-radius: 8px;
       background: #fafafa;
+    }
+
+    .cloud-list {
+      max-height: 360px;
+      overflow: auto;
+      padding-right: 2px;
     }
 
     .suggestion-badge {
@@ -224,6 +279,16 @@
     .suggestion-desc { font-size: 11px; color: #71717a; margin-top: 1px; }
 
     .suggestion-size { font-size: 11px; color: #a1a1aa; flex-shrink: 0; }
+
+    .empty-state {
+      font-size: 12px;
+      color: #71717a;
+      line-height: 1.5;
+      padding: 10px;
+      border: 1px dashed #d4d4d8;
+      border-radius: 8px;
+      background: #fafafa;
+    }
 
     .btn-pull {
       flex-shrink: 0;
@@ -359,11 +424,11 @@
         <select id="model-select" disabled>
           <option value="">— test connection to load models —</option>
         </select>
-        <p class="field-hint" id="model-hint">Click <em>Test connection</em> to load available models.</p>
+        <p class="field-hint" id="model-hint">FlowFluent reads this list from the Ollama app.</p>
       </div>
 
       <div class="test-row">
-        <button id="btn-test" class="btn btn-muted">Test connection</button>
+        <button id="btn-test" class="btn btn-muted">Refresh Ollama</button>
         <span id="test-result"></span>
       </div>
     </div>
@@ -379,71 +444,53 @@
   <!-- ── RIGHT COLUMN ── -->
   <div class="col-right">
 
-    <!-- Suggested models -->
+    <!-- Cloud model catalog -->
     <div class="card">
-      <h2>Suggested models</h2>
-      <div class="suggestions">
-
-        <div class="suggestion">
-          <span class="suggestion-badge badge-best">Best pick</span>
-          <div class="suggestion-info">
-            <div class="suggestion-name">gemma3:4b</div>
-            <div class="suggestion-desc">Balanced quality &amp; speed, strong German &amp; English</div>
-          </div>
-          <span class="suggestion-size">3.3 GB</span>
-          <button class="btn-pull" data-model="gemma3:4b">Copy</button>
-        </div>
-
-        <div class="suggestion">
-          <span class="suggestion-badge badge-fastest">Fastest</span>
-          <div class="suggestion-info">
-            <div class="suggestion-name">qwen3:1.7b</div>
-            <div class="suggestion-desc">Snappy, latest Qwen, solid German &amp; English</div>
-          </div>
-          <span class="suggestion-size">1.4 GB</span>
-          <button class="btn-pull" data-model="qwen3:1.7b">Copy</button>
-        </div>
-
-        <div class="suggestion">
-          <span class="suggestion-badge badge-quality">Best quality</span>
-          <div class="suggestion-info">
-            <div class="suggestion-name">qwen3:8b</div>
-            <div class="suggestion-desc">Top multilingual quality, needs a GPU</div>
-          </div>
-          <span class="suggestion-size">5.2 GB</span>
-          <button class="btn-pull" data-model="qwen3:8b">Copy</button>
-        </div>
-
+      <h2>Cloud model catalog</h2>
+      <div class="cmd-row">
+        <code>ollama signin</code>
+        <button class="btn-copy-cmd" data-copy="ollama signin">Copy</button>
+      </div>
+      <p class="field-hint" style="margin-bottom:10px;">
+        FlowFluent fetches this catalog from Ollama. Sign in with Ollama first, then copy a pull command.
+      </p>
+      <div class="suggestions cloud-list" id="cloud-model-list">
+        <div class="empty-state">Loading cloud models...</div>
       </div>
       <p class="field-hint" style="margin-top:10px;">
-        Copy command, then run it in a terminal to install.
+        Prompts still go only to your local Ollama app. This catalog is used for model names.
       </p>
     </div>
 
-    <!-- First-time setup -->
+    <!-- Connection status -->
     <div class="card">
-      <h2>First-time setup</h2>
+      <h2>Connection status</h2>
 
-      <div class="setup-step">
-        <div class="step-label">1 — Allow browser access</div>
-        <div class="cmd-row">
-          <code>setx OLLAMA_ORIGINS "*"</code>
-          <button class="btn-copy-cmd" data-cmd='setx OLLAMA_ORIGINS "*"'>Copy</button>
+      <div class="status-list">
+        <div class="status-item" id="status-ollama">
+          <span class="status-dot"></span>
+          <span>Checking whether the Ollama app is reachable.</span>
         </div>
-        <p>Run once in Command Prompt or PowerShell.<br>
-           macOS / Linux: add <code>OLLAMA_ORIGINS="*"</code> to your shell profile.</p>
+        <div class="status-item" id="status-models">
+          <span class="status-dot"></span>
+          <span>Looking for installed local or cloud models.</span>
+        </div>
+        <div class="status-item" id="status-cloud">
+          <span class="status-dot"></span>
+          <span>Loading Ollama's public cloud model catalog.</span>
+        </div>
       </div>
 
-      <div class="setup-step">
-        <div class="step-label">2 — Restart Ollama</div>
-        <p>Right-click the tray icon → <strong>Quit</strong>, then relaunch.<br>
-           Or run <code>ollama serve</code> in a terminal.</p>
-      </div>
+      <p class="field-hint" id="origin-hint" style="margin-top:12px;"></p>
 
-      <div class="setup-step">
-        <div class="step-label">3 — Verify</div>
-        <p>Click <strong>Test connection</strong>.<br>
-           A 403 error means Ollama wasn't restarted after step 1.</p>
+      <div class="origin-setup" id="origin-setup">
+        <div class="origin-setup-title">Init browser access</div>
+        <p class="field-hint" id="origin-command-intro" style="margin-bottom:6px;"></p>
+        <div class="cmd-row">
+          <code id="origin-command"></code>
+          <button class="btn-copy-cmd" id="btn-copy-origin" data-copy="">Copy init</button>
+        </div>
+        <p class="field-hint" id="origin-restart-hint"></p>
       </div>
     </div>
 

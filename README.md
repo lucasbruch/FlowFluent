@@ -24,7 +24,7 @@ A Chrome extension that fixes your writing, rewrites it in a different tone, or 
 You need three things:
 1. **Google Chrome** (you probably already have this)
 2. **Ollama** (a free program that runs the AI on your computer)
-3. **An AI model** (a file Ollama downloads for you)
+3. **At least one Ollama model** (local or cloud)
 
 Don't worry, the steps below walk you through each one.
 
@@ -55,61 +55,50 @@ curl -fsSL https://ollama.com/install.sh | sh
 ```
 
 
-## Step 2: Allow Chrome to talk to Ollama
+## Step 2: Make sure Ollama has a model
 
-By default, Ollama only talks to programs on your computer. We need to give it permission to talk to your browser.
+FlowFluent reads your installed model list directly from the Ollama app. You can use any model that appears in Ollama.
 
-### On Windows
-1. Press the **Windows key**, type `cmd`, and press **Enter** to open Command Prompt
-2. Copy and paste this line, then press **Enter**:
-   ```cmd
-   setx OLLAMA_ORIGINS "*"
-   ```
-3. You should see `SUCCESS: Specified value was saved.`
-4. **Restart Ollama**: right-click the llama icon near your clock, choose **Quit**, then open Ollama again from your Start menu
+If you already have models installed, you can skip this step.
 
-### On Mac
-1. Open the **Terminal** app (search for it with Spotlight: press `Cmd + Space`, type `Terminal`)
-2. Copy and paste this line, then press **Enter**:
-   ```bash
-   launchctl setenv OLLAMA_ORIGINS "*"
-   ```
-3. **Restart Ollama**: click the llama icon in the menu bar, choose **Quit**, then reopen Ollama from Applications
+### Local model
 
-### On Linux
-Add this line to your shell profile (`~/.bashrc` or `~/.zshrc`):
+We recommend **qwen3:1.7b** as a starting point: it's small, fast, and works well in both English and German.
+
+To install it, open a terminal and run:
+
 ```bash
-export OLLAMA_ORIGINS="*"
+ollama pull qwen3:1.7b
 ```
-Then restart Ollama: `pkill ollama && ollama serve`
 
-
-## Step 3: Download an AI model
-
-Now we tell Ollama which AI to use. We recommend **qwen3:1.7b**: it's small, fast, and works well in both English and German.
-
-1. Open a terminal:
-   - **Windows**: press the Windows key, type `cmd`, press Enter
-   - **Mac**: open Terminal (`Cmd + Space`, type Terminal)
-   - **Linux**: open your terminal app
-2. Copy and paste this command, then press **Enter**:
-   ```bash
-   ollama pull qwen3:1.7b
-   ```
-3. Wait for the download to finish (about 1.4 GB, usually 1 to 3 minutes on a normal connection)
-4. When you see your prompt again with no error, it's done.
-
-### Other models you can try later
+### Other models you can try
 | Model | Size | Best for |
 |-------|------|----------|
 | `qwen3:1.7b` | 1.4 GB | Fast on any computer (recommended starting point) |
 | `gemma3:4b` | 3.3 GB | Better quality, still runs on most laptops |
 | `qwen3:8b` | 5.2 GB | Best quality, needs a decent GPU |
 
-To install another model later, run `ollama pull <name>` with the name from the table.
+FlowFluent is not limited to these models. To install another model later, run `ollama pull <name>`, then click **Refresh Ollama** in FlowFluent settings.
+
+### Cloud model
+
+Ollama Cloud models run through the Ollama app too. FlowFluent does not ask for an API key.
+
+1. Open a terminal:
+   - **Windows**: press the Windows key, type `cmd`, press Enter
+   - **Mac**: open Terminal (`Cmd + Space`, type Terminal)
+   - **Linux**: open your terminal app
+2. Sign in to Ollama:
+   ```bash
+   ollama signin
+   ```
+3. Open FlowFluent settings and copy a cloud model pull command from the live catalog.
+4. Run the copied command, then click **Refresh Ollama** in FlowFluent.
+
+FlowFluent fetches the cloud model catalog from Ollama, so the list stays current without hardcoded model names.
 
 
-## Step 4: Install FlowFluent in Chrome
+## Step 3: Install FlowFluent in Chrome
 
 1. Download this project as a ZIP:
    - Click the green **Code** button at the top of [this page](https://github.com/lucasbruch/FlowFluent)
@@ -121,6 +110,17 @@ To install another model later, run `ollama pull <name>` with the name from the 
 6. Click **Load unpacked** (top-left)
 7. Select the folder you unzipped in step 2
 8. FlowFluent now appears in your extensions list. Pin it to your toolbar by clicking the puzzle-piece icon next to your address bar, then the pin icon next to FlowFluent.
+
+
+## Step 4: Choose a model
+
+1. Click the FlowFluent icon ![icon](docs/screenshots/toolbar-icon.png) in your Chrome toolbar.
+2. Click the gear icon to open settings.
+3. FlowFluent will read installed models from Ollama.
+4. Pick any installed model from the dropdown.
+5. Click **Save settings**.
+
+If no models are installed yet, use the local or cloud suggestions in settings, then click **Refresh Ollama**.
 
 
 ## Step 5: Try it out
@@ -141,8 +141,9 @@ You can also try **Translate to German** or **Translate to English** from the sa
 
 Click the FlowFluent icon ![icon](docs/screenshots/toolbar-icon.png) in your Chrome toolbar, then click the gear icon. From there you can:
 - Change the writing style (Easy, Business, or Academic)
-- Pick a different AI model
-- Test the connection to Ollama
+- Pick any model installed in Ollama
+- Refresh the installed model list
+- Copy live cloud model pull commands from Ollama's catalog
 
 ![Settings page](docs/screenshots/settings.png)
 
@@ -152,10 +153,11 @@ Click the FlowFluent icon ![icon](docs/screenshots/toolbar-icon.png) in your Chr
 | Problem | What to do |
 |---------|------------|
 | **"Cannot reach Ollama"** | Make sure Ollama is running. Check for the llama icon near your clock (Windows) or menu bar (Mac). If it's missing, open Ollama again. |
-| **"403 Forbidden"** | You skipped step 2, or didn't restart Ollama after step 2. Do step 2 again, then fully quit and reopen Ollama. |
-| **Model dropdown is empty** | You haven't pulled a model yet. Go back to step 3. |
+| **"Ollama blocked FlowFluent"** | Open settings, use **Init browser access** to copy the exact command for your computer, run it once, then restart Ollama. Avoid using `OLLAMA_ORIGINS="*"` unless you understand the privacy tradeoff. |
+| **Model dropdown is empty** | You have not pulled a model yet. Pull any local model, or run `ollama signin` and pull a cloud model from the live catalog. |
+| **Cloud model asks for sign-in** | Run `ollama signin`, then try again. FlowFluent does not store Ollama API keys. |
 | **Right-click menu doesn't show "Fix this writing"** | Reload the extension: go to `chrome://extensions`, find FlowFluent, click the refresh icon. |
-| **Result is slow** | Big models are slower. Try the smallest one (`qwen2.5:3b`) first. |
+| **Result is slow** | Big local models are slower. Choose a smaller local model or use an Ollama Cloud model. |
 
 
 ## License
