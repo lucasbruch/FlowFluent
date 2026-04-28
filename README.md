@@ -63,11 +63,22 @@ If you already have models installed, you can skip this step.
 
 ### Local model
 
-To install a small local model, open a terminal and run:
+We recommend **qwen3:1.7b** as a starting point: it's small, fast, and works well in both English and German.
+
+To install it, open a terminal and run:
 
 ```bash
 ollama pull qwen3:1.7b
 ```
+
+### Other models you can try
+| Model | Size | Best for |
+|-------|------|----------|
+| `qwen3:1.7b` | 1.4 GB | Fast on any computer (recommended starting point) |
+| `gemma3:4b` | 3.3 GB | Better quality, still runs on most laptops |
+| `qwen3:8b` | 5.2 GB | Best quality, needs a decent GPU |
+
+FlowFluent is not limited to these models. To install another model later, run `ollama pull <name>`, then click **Refresh Ollama** in FlowFluent settings.
 
 ### Cloud model
 
