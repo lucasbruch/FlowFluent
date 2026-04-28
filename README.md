@@ -6,6 +6,8 @@ A Chrome extension that fixes your writing, rewrites it in a different tone, or 
 ![Ollama](https://img.shields.io/badge/Powered%20by-Ollama-000?logo=ollama&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+![FlowFluent in action](docs/screenshots/usage.png)
+
 
 ## What it does
 
@@ -130,15 +132,19 @@ To install another model later, run `ollama pull <name>` with the name from the 
 5. A small box appears in the top-right of the page showing the corrected text with the changes highlighted
 6. Click **Replace** to put the fixed text into the text box, or **Discard** if you don't like it.
 
+![Result overlay](docs/screenshots/overlay.png)
+
 You can also try **Translate to German** or **Translate to English** from the same right-click menu.
 
 
 ## Settings
 
-Click the FlowFluent icon in your Chrome toolbar, then click the gear icon. From there you can:
+Click the FlowFluent icon ![icon](docs/screenshots/toolbar-icon.png) in your Chrome toolbar, then click the gear icon. From there you can:
 - Change the writing style (Easy, Business, or Academic)
 - Pick a different AI model
 - Test the connection to Ollama
+
+![Settings page](docs/screenshots/settings.png)
 
 
 ## Something went wrong?
