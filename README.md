@@ -6,8 +6,6 @@ A Chrome extension that fixes, rewrites, and translates selected text using a lo
 ![Ollama](https://img.shields.io/badge/Powered%20by-Ollama-000?logo=ollama&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
----
-
 ## Features
 
 - **Fix writing** — correct grammar and spelling in your chosen style (Easy / Business / Academic)
@@ -18,7 +16,6 @@ A Chrome extension that fixes, rewrites, and translates selected text using a lo
 - Inline **word-level diff** so you see exactly what changed
 - Supports **English and German** natively
 
----
 
 ## Prerequisites
 
@@ -49,7 +46,6 @@ A Chrome extension that fixes, rewrites, and translates selected text using a lo
 
    Then **restart Ollama** (quit from the tray icon and relaunch, or run `ollama serve`).
 
----
 
 ## Installation
 
@@ -69,7 +65,6 @@ A Chrome extension that fixes, rewrites, and translates selected text using a lo
 2. Unzip it
 3. Follow steps 2–4 from Option A
 
----
 
 ## Usage
 
@@ -84,7 +79,6 @@ The result appears in an overlay on the page. From there you can further shorten
 ### Popup
 Click the FlowFluent icon in the toolbar while text is selected → **Fix this writing**.
 
----
 
 ## Settings
 
@@ -98,7 +92,6 @@ Click the gear icon (⚙) in the popup, or go to `chrome://extensions` → FlowF
 
 Use **Test connection** to verify Ollama is reachable and load available models.
 
----
 
 ## Troubleshooting
 
@@ -109,7 +102,6 @@ Use **Test connection** to verify Ollama is reachable and load available models.
 | Model not in dropdown | Pull it first: `ollama pull <model>`, then re-test connection |
 | Extension not responding | Reload it at `chrome://extensions` after installing a new version |
 
----
 
 ## License
 
