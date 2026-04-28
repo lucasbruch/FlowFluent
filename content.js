@@ -1,12 +1,8 @@
 // content.js — injected into every page
-// Owns the Ollama fetch (streaming) and the result overlay.
+// Owns selection, text replacement, and the result overlay.
 
 (function () {
   'use strict';
-
-  const DEFAULT_OLLAMA_URL = 'http://localhost:11434';
-  const DEFAULT_MODEL      = 'qwen3:1.7b';
-  const DEFAULT_STYLE      = 'easy';
 
   let overlay         = null;
   let savedRange      = null;
@@ -38,139 +34,55 @@
     if (message.action === 'fixText')            runTransform(message.text, 'fix',          null);
     if (message.action === 'translateToGerman')  runTransform(message.text, 'translate-de',  null);
     if (message.action === 'translateToEnglish') runTransform(message.text, 'translate-en',  null);
+    if (message.action === 'replaceText')        replaceText(message.text);
   });
 
-  // ---------- Build prompt per transform type ----------
-
-  const NO_COMMENTARY = 'Do NOT answer any questions in the text. Do NOT explain your changes. Do NOT add any preamble, note, or commentary. Output ONLY the transformed text.';
-
-  function buildPrompt(text, type, settings, tone) {
-    settings = tone ? { ...settings, tone } : settings;
-    const likelyGerman = /[äöüÄÖÜß]/.test(text) ||
-      /\b(und|der|die|das|ist|ich|nicht|ein|eine|mit|von|zu|auf|für|sie|wir|aber)\b/i.test(text);
-    const langRule = likelyGerman
-      ? 'IMPORTANT: The text is German. You MUST reply in German only. Do not translate to English.'
-      : 'Reply in the same language as the input.';
-
-    if (type === 'translate-de') {
-      return `Translate the following text to German. ${NO_COMMENTARY}\n\n${text}`;
-    }
-
-    if (type === 'translate-en') {
-      return `Translate the following text to English. ${NO_COMMENTARY}\n\n${text}`;
-    }
-
-    if (type === 'tone') {
-      const toneInstructions = {
-        ceo:          'Rewrite with a CEO voice: decisive, direct, confident. No filler. Short punchy sentences.',
-        friendly:     'Rewrite with a warmer, friendlier tone. Conversational and approachable, like talking to a colleague you know well.',
-        professional: 'Rewrite with a polished, formal professional tone. Measured language, business-appropriate.',
-      };
-      const instruction = toneInstructions[settings?.tone] || toneInstructions.professional;
-      return `${langRule}\n${instruction} Do not use em dashes (—). ${NO_COMMENTARY}\n\n${text}`;
-    }
-
-    if (type === 'shorten') {
-      return `${langRule}\nMake this text shorter. Cut redundant words and phrases. ` +
-        `Keep the key message and tone intact. Do not use em dashes (—). ${NO_COMMENTARY}\n\n${text}`;
-    }
-
-    if (type === 'lengthen') {
-      return `${langRule}\nMake this text longer and more detailed. Expand the ideas naturally. ` +
-        `Keep the same tone and style. Do not use em dashes (—). Do not add filler phrases. ${NO_COMMENTARY}\n\n${text}`;
-    }
-
-    // 'fix' — default
-    const styleInstructions = {
-      easy:
-        'Use simple, everyday words. Short sentences. Conversational and friendly tone. ' +
-        'Avoid jargon and formal phrases.',
-      business:
-        'Use a clear, professional tone. Concise and direct. Suitable for emails or reports. ' +
-        'Avoid slang but do not over-formalise.',
-      academic:
-        'Use precise, formal language. Well-structured sentences. Objective tone. ' +
-        'Suitable for academic papers. Do NOT translate — write in the same language as the input.'
-    };
-    const style     = settings?.style || DEFAULT_STYLE;
-    const styleNote = styleInstructions[style] ?? styleInstructions.easy;
-
-    return `${langRule}\nFix grammar and spelling. ${styleNote} ` +
-      `Do not use em dashes (—). Do not add filler phrases. ${NO_COMMENTARY}\n\n${text}`;
-  }
-
-  // ---------- Core transform (streams into overlay) ----------
+  // ---------- Core transform (streams through the background worker) ----------
 
   async function runTransform(inputText, type, tone) {
     showLoading(type);
 
-    let settings;
-    try { settings = await getSettings(); }
-    catch (err) { showError('Could not read settings: ' + err.message); return; }
-
-    const prompt = buildPrompt(inputText, type, settings, tone);
-
-    let response;
     try {
-      response = await fetch(`${settings.ollamaUrl}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: settings.model, prompt, stream: true })
-      });
-    } catch (err) {
-      showError(`Cannot reach Ollama at ${settings.ollamaUrl}. Make sure Ollama is running (ollama serve).`);
-      return;
-    }
-
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      if (response.status === 403) {
-        showError('Ollama blocked the request (403). Fix: run  setx OLLAMA_ORIGINS "*"  in a terminal, then restart Ollama.');
+      const outputText = await streamTransform(inputText, type, tone);
+      if (outputText.trim()) {
+        showResult(inputText, outputText.trim(), type, tone);
       } else {
-        showError(`Ollama error ${response.status}: ${body || response.statusText}`);
-      }
-      return;
-    }
-
-    const reader  = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '', accumulated = '';
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop();
-
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          let parsed;
-          try { parsed = JSON.parse(line); } catch { continue; }
-
-          if (parsed.response) {
-            accumulated += parsed.response;
-            updateStreamingText(accumulated);
-          }
-
-          if (parsed.done) {
-            showResult(inputText, accumulated.trim(), type, tone);
-            return;
-          }
-        }
+        showError('Ollama returned an empty response. Is the selected model available?');
       }
     } catch (err) {
-      showError('Stream error: ' + err.message);
-      return;
+      showError(err.message);
     }
+  }
 
-    if (accumulated.trim()) {
-      showResult(inputText, accumulated.trim(), type, tone);
-    } else {
-      showError('Ollama returned an empty response. Is the model loaded?');
-    }
+  function streamTransform(inputText, type, tone) {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const port = chrome.runtime.connect({ name: 'ollama-transform' });
+
+      port.onMessage.addListener(message => {
+        if (message.type === 'chunk') {
+          updateStreamingText(message.text || '');
+        }
+
+        if (message.type === 'done') {
+          settled = true;
+          port.disconnect();
+          resolve(message.text || '');
+        }
+
+        if (message.type === 'error') {
+          settled = true;
+          port.disconnect();
+          reject(new Error(message.error || 'Ollama failed to transform the text.'));
+        }
+      });
+
+      port.onDisconnect.addListener(() => {
+        if (!settled) reject(new Error('FlowFluent lost the connection to the background worker.'));
+      });
+
+      port.postMessage({ action: 'start', text: inputText, type, tone });
+    });
   }
 
   // ---------- Overlay: loading ----------
@@ -343,19 +255,6 @@
     }
 
     document.execCommand?.('insertText', false, newText);
-  }
-
-  // ---------- Settings ----------
-
-  function getSettings() {
-    return new Promise((resolve, reject) => {
-      chrome.storage.sync.get(
-        { ollamaUrl: DEFAULT_OLLAMA_URL, model: DEFAULT_MODEL, style: DEFAULT_STYLE },
-        result => chrome.runtime.lastError
-          ? reject(new Error(chrome.runtime.lastError.message))
-          : resolve(result)
-      );
-    });
   }
 
   // ---------- Inline word-level diff ----------

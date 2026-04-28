@@ -48,16 +48,17 @@
     show('loading');
 
     const response = await chrome.runtime.sendMessage({
-      action: 'fixTextForPopup',
+      action: 'transformText',
+      type: 'fix',
       text: selectedText
-    });
+    }).catch(err => ({ success: false, error: err.message }));
 
-    if (response.success) {
-      fixedText = response.fixed;
+    if (response?.success) {
+      fixedText = response.text;
       document.getElementById('result-text').innerHTML = buildDiffHtml(selectedText, fixedText);
       show('result');
     } else {
-      document.getElementById('error-msg').textContent = response.error || 'An unknown error occurred.';
+      document.getElementById('error-msg').textContent = response?.error || 'An unknown error occurred.';
       show('error');
     }
   });
