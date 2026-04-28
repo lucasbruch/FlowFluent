@@ -86,7 +86,7 @@ Then restart Ollama: `pkill ollama && ollama serve`
 
 ## Step 3: Download an AI model
 
-Now we tell Ollama which AI to use. We recommend **qwen2.5:3b**: it's small, fast, and works well in both English and German.
+Now we tell Ollama which AI to use. We recommend **qwen3:1.7b**: it's small, fast, and works well in both English and German.
 
 1. Open a terminal:
    - **Windows**: press the Windows key, type `cmd`, press Enter
@@ -94,17 +94,17 @@ Now we tell Ollama which AI to use. We recommend **qwen2.5:3b**: it's small, fas
    - **Linux**: open your terminal app
 2. Copy and paste this command, then press **Enter**:
    ```bash
-   ollama pull qwen2.5:3b
+   ollama pull qwen3:1.7b
    ```
-3. Wait for the download to finish (about 1.9 GB, usually 2 to 5 minutes on a normal connection)
+3. Wait for the download to finish (about 1.4 GB, usually 1 to 3 minutes on a normal connection)
 4. When you see your prompt again with no error, it's done.
 
 ### Other models you can try later
 | Model | Size | Best for |
 |-------|------|----------|
-| `qwen2.5:3b` | 1.9 GB | Fast on any computer (recommended starting point) |
-| `gemma4:e4b` | ~3 GB | Better quality, still fast |
-| `qwen2.5:7b` | 4.7 GB | Best quality, needs a decent GPU |
+| `qwen3:1.7b` | 1.4 GB | Fast on any computer (recommended starting point) |
+| `gemma3:4b` | 3.3 GB | Better quality, still runs on most laptops |
+| `qwen3:8b` | 5.2 GB | Best quality, needs a decent GPU |
 
 To install another model later, run `ollama pull <name>` with the name from the table.
 

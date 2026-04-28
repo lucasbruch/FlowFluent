@@ -5,7 +5,7 @@
   'use strict';
 
   const DEFAULT_OLLAMA_URL = 'http://localhost:11434';
-  const DEFAULT_MODEL      = 'qwen2.5:3b';
+  const DEFAULT_MODEL      = 'qwen3:1.7b';
   const DEFAULT_STYLE      = 'easy';
 
   let overlay         = null;
