@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FlowFluent — Settings</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                   'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      color: #18181b;
+      background: #f9f9fb;
+      min-height: 100vh;
+      padding: 40px 24px;
+    }
+
+    /* ── Page header ── */
+
+    .page-header {
+      max-width: 900px;
+      margin: 0 auto 24px;
+    }
+
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #71717a; }
+
+    /* ── Two-column grid ── */
+
+    .layout {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .col-left  { display: flex; flex-direction: column; gap: 16px; }
+    .col-right { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Card ── */
+
+    .card {
+      background: #fff;
+      border: 1px solid #e4e4e7;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .card h2 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #71717a;
+      margin-bottom: 14px;
+    }
+
+    /* ── Writing style picker ── */
+
+    .style-options { display: flex; gap: 8px; }
+
+    .style-option { flex: 1; position: relative; }
+
+    .style-option input[type="radio"] {
+      position: absolute; opacity: 0; width: 0; height: 0;
+    }
+
+    .style-option label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 6px;
+      border: 1.5px solid #e4e4e7;
+      border-radius: 8px;
+      background: #fafafa;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+      margin: 0;
+      font-weight: 400;
+    }
+
+    .style-option input:checked + label {
+      border-color: #6366f1;
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    .style-option label:hover { border-color: #a5b4fc; background: #f5f3ff; }
+
+    .style-icon { font-size: 18px; line-height: 1; }
+    .style-name { font-size: 12px; font-weight: 600; }
+    .style-desc { font-size: 11px; color: #71717a; line-height: 1.3; }
+    .style-option input:checked + label .style-desc { color: #6366f1; }
+
+    /* ── Ollama fields ── */
+
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #3f3f46;
+      margin-bottom: 5px;
+    }
+
+    input[type="url"], select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d4d4d8;
+      border-radius: 7px;
+      font-size: 13px;
+      color: #18181b;
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2371717a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+      cursor: pointer;
+    }
+
+    select:disabled { color: #a1a1aa; cursor: default; }
+    input:focus, select:focus { border-color: #6366f1; background: #fff; }
+
+    .field-hint { font-size: 12px; color: #a1a1aa; margin-top: 4px; }
+
+    .test-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+
+    /* ── Buttons ── */
+
+    .btn {
+      cursor: pointer;
+      padding: 8px 18px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .save-row {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+    }
+
+    .save-row .btn-primary {
+      width: 100%;
+    }
+
+    .btn-primary       { background: #6366f1; color: #fff; }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-muted         { background: #52525b; color: #fff; }
+    .btn-muted:hover   { background: #3f3f46; }
+
+    #status {
+      display: block;
+      text-align: center;
+      font-size: 12px;
+      color: #16a34a;
+      opacity: 0;
+      transition: opacity 0.3s;
+      min-height: 16px;
+    }
+    #status.visible { opacity: 1; }
+
+    #test-result { font-size: 12px; color: #52525b; flex: 1; }
+    #test-result.ok  { color: #16a34a; }
+    #test-result.err { color: #dc2626; }
+
+    /* ── Suggested models ── */
+
+    .suggestions { display: flex; flex-direction: column; gap: 8px; }
+
+    .suggestion {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border: 1px solid #e4e4e7;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .suggestion-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .badge-best    { background: #dcfce7; color: #166534; }
+    .badge-fastest { background: #dbeafe; color: #1e40af; }
+    .badge-quality { background: #f3e8ff; color: #6b21a8; }
+
+    .suggestion-info { flex: 1; min-width: 0; }
+
+    .suggestion-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #18181b;
+      font-family: 'Courier New', monospace;
+    }
+
+    .suggestion-desc { font-size: 11px; color: #71717a; margin-top: 1px; }
+
+    .suggestion-size { font-size: 11px; color: #a1a1aa; flex-shrink: 0; }
+
+    .btn-pull {
+      flex-shrink: 0;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 5px;
+      border: 1px solid #d4d4d8;
+      background: #fff;
+      color: #3f3f46;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .btn-pull:hover  { background: #f4f4f5; border-color: #a1a1aa; }
+    .btn-pull.copied { background: #dcfce7; border-color: #86efac; color: #166534; }
+
+    /* ── First-time setup ── */
+
+    .setup-step {
+      padding: 10px 0 12px;
+      border-bottom: 1px solid #f0f0f2;
+      margin-bottom: 12px;
+    }
+
+    .setup-step:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+
+    .step-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6366f1;
+      margin-bottom: 7px;
+    }
+
+    .setup-step p { font-size: 12px; color: #52525b; line-height: 1.55; }
+
+    .cmd-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e1e2e;
+      border-radius: 7px;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+    }
+
+    .cmd-row code {
+      flex: 1;
+      font-family: 'Courier New', Consolas, monospace;
+      font-size: 12px;
+      color: #a6e3a1;
+      user-select: all;
+    }
+
+    .btn-copy-cmd {
+      flex-shrink: 0;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 5px;
+      border: 1px solid #45475a;
+      background: #313244;
+      color: #cdd6f4;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-copy-cmd:hover  { background: #45475a; }
+    .btn-copy-cmd.copied { background: #1e3a2e; border-color: #a6e3a1; color: #a6e3a1; }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>FlowFluent</h1>
+  <p class="subtitle">Configure your local Ollama connection and preferences.</p>
+</div>
+
+<div class="layout">
+
+  <!-- ── LEFT COLUMN ── -->
+  <div class="col-left">
+
+    <!-- Writing style -->
+    <div class="card">
+      <h2>Writing style</h2>
+      <div class="style-options">
+
+        <div class="style-option">
+          <input type="radio" name="style" id="style-easy" value="easy">
+          <label for="style-easy">
+            <span class="style-icon">💬</span>
+            <span class="style-name">Easy</span>
+            <span class="style-desc">Simple words, friendly tone</span>
+          </label>
+        </div>
+
+        <div class="style-option">
+          <input type="radio" name="style" id="style-business" value="business">
+          <label for="style-business">
+            <span class="style-icon">💼</span>
+            <span class="style-name">Business</span>
+            <span class="style-desc">Professional, clear, concise</span>
+          </label>
+        </div>
+
+        <div class="style-option">
+          <input type="radio" name="style" id="style-academic" value="academic">
+          <label for="style-academic">
+            <span class="style-icon">🎓</span>
+            <span class="style-name">Academic</span>
+            <span class="style-desc">Formal, precise, structured</span>
+          </label>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Ollama config -->
+    <div class="card">
+      <h2>Ollama</h2>
+
+      <div class="field">
+        <label for="ollama-url">Server URL</label>
+        <input type="url" id="ollama-url" placeholder="http://localhost:11434">
+        <p class="field-hint">Default: http://localhost:11434</p>
+      </div>
+
+      <div class="field">
+        <label for="model-select">Model</label>
+        <select id="model-select" disabled>
+          <option value="">— test connection to load models —</option>
+        </select>
+        <p class="field-hint" id="model-hint">Click <em>Test connection</em> to load available models.</p>
+      </div>
+
+      <div class="test-row">
+        <button id="btn-test" class="btn btn-muted">Test connection</button>
+        <span id="test-result"></span>
+      </div>
+    </div>
+
+    <!-- Save — same width as cards above -->
+    <div class="save-row">
+      <button id="btn-save" class="btn btn-primary">Save settings</button>
+      <span id="status">Saved!</span>
+    </div>
+
+  </div><!-- /col-left -->
+
+  <!-- ── RIGHT COLUMN ── -->
+  <div class="col-right">
+
+    <!-- Suggested models -->
+    <div class="card">
+      <h2>Suggested models</h2>
+      <div class="suggestions">
+
+        <div class="suggestion">
+          <span class="suggestion-badge badge-best">Best pick</span>
+          <div class="suggestion-info">
+            <div class="suggestion-name">gemma4:e4b</div>
+            <div class="suggestion-desc">Fast, excellent German &amp; English, latest Gemma generation</div>
+          </div>
+          <span class="suggestion-size">~3 GB</span>
+          <button class="btn-pull" data-model="gemma4:e4b">Copy</button>
+        </div>
+
+        <div class="suggestion">
+          <span class="suggestion-badge badge-fastest">Fastest</span>
+          <div class="suggestion-info">
+            <div class="suggestion-name">qwen2.5:3b</div>
+            <div class="suggestion-desc">Snappy, solid German &amp; English</div>
+          </div>
+          <span class="suggestion-size">1.9 GB</span>
+          <button class="btn-pull" data-model="qwen2.5:3b">Copy</button>
+        </div>
+
+        <div class="suggestion">
+          <span class="suggestion-badge badge-quality">Best quality</span>
+          <div class="suggestion-info">
+            <div class="suggestion-name">qwen2.5:7b</div>
+            <div class="suggestion-desc">Better output if you have a GPU</div>
+          </div>
+          <span class="suggestion-size">4.7 GB</span>
+          <button class="btn-pull" data-model="qwen2.5:7b">Copy</button>
+        </div>
+
+      </div>
+      <p class="field-hint" style="margin-top:10px;">
+        Copy command, then run it in a terminal to install.
+      </p>
+    </div>
+
+    <!-- First-time setup -->
+    <div class="card">
+      <h2>First-time setup</h2>
+
+      <div class="setup-step">
+        <div class="step-label">1 — Allow browser access</div>
+        <div class="cmd-row">
+          <code>setx OLLAMA_ORIGINS "*"</code>
+          <button class="btn-copy-cmd" data-cmd='setx OLLAMA_ORIGINS "*"'>Copy</button>
+        </div>
+        <p>Run once in Command Prompt or PowerShell.<br>
+           macOS / Linux: add <code>OLLAMA_ORIGINS="*"</code> to your shell profile.</p>
+      </div>
+
+      <div class="setup-step">
+        <div class="step-label">2 — Restart Ollama</div>
+        <p>Right-click the tray icon → <strong>Quit</strong>, then relaunch.<br>
+           Or run <code>ollama serve</code> in a terminal.</p>
+      </div>
+
+      <div class="setup-step">
+        <div class="step-label">3 — Verify</div>
+        <p>Click <strong>Test connection</strong>.<br>
+           A 403 error means Ollama wasn't restarted after step 1.</p>
+      </div>
+    </div>
+
+  </div><!-- /col-right -->
+
+</div><!-- /layout -->
+
+<script src="options.js"></script>
+</body>
+</html>

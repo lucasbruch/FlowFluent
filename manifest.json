@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "FlowFluent",
+  "version": "1.1.0",
+  "description": "Fix, shorten or lengthen your writing using a local Ollama LLM. 100% private — no data leaves your machine. Supports English and German.",
+
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "scripting",
+    "activeTab"
+  ],
+
+  "host_permissions": [
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+
+  "options_page": "options.html",
+
+  "icons": {
+    "16":  "icons/icon16.png",
+    "48":  "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

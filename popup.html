@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowFluent</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- Header -->
+    <header>
+      <span class="title">FlowFluent</span>
+      <a href="#" id="btn-options" title="Settings">&#9881;</a>
+    </header>
+
+    <!-- Idle: no text selected -->
+    <div id="view-idle" class="view">
+      <div class="hint-icon">&#9997;</div>
+      <p class="hint">Select text on the page, then click <strong>Fix this writing</strong>.</p>
+      <p class="hint-sub">Or right-click selected text and choose <em>Fix this writing</em>.</p>
+    </div>
+
+    <!-- Ready: text is selected -->
+    <div id="view-ready" class="view hidden">
+      <div class="selected-preview" id="selected-preview"></div>
+      <button id="btn-fix" class="btn btn-primary">Fix this writing</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="view-loading" class="view hidden">
+      <div class="spinner"></div>
+      <p class="hint">Asking the model…</p>
+    </div>
+
+    <!-- Result -->
+    <div id="view-result" class="view hidden">
+      <div class="label">Suggested fix</div>
+      <div class="result-text" id="result-text"></div>
+      <div class="actions">
+        <button id="btn-discard" class="btn btn-secondary">Discard</button>
+        <button id="btn-accept"  class="btn btn-primary">Replace text</button>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="view-error" class="view hidden">
+      <div class="error-icon">&#9888;</div>
+      <p class="error-msg" id="error-msg"></p>
+      <button id="btn-retry" class="btn btn-secondary">Try again</button>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
