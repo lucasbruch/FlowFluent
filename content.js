@@ -83,14 +83,18 @@
     // 'fix' — default
     const styleInstructions = {
       easy:
-        'Use simple, everyday words. Short sentences. Conversational and friendly tone. ' +
-        'Avoid jargon and formal phrases.',
+        'Fix only spelling and grammar errors. ' +
+        'Read the energy and tone of the original carefully — casual, blunt, enthusiastic, whatever it is — and keep that exact same energy in your output. ' +
+        'If the original is casual and punchy, keep it casual and punchy. If it is rambling, keep it rambling. Do not clean it up beyond fixing actual errors. ' +
+        'Change as few words as possible.',
       business:
-        'Use a clear, professional tone. Concise and direct. Suitable for emails or reports. ' +
-        'Avoid slang but do not over-formalise.',
+        'Fix grammar, spelling, and clarity. ' +
+        'Preserve the author\'s tone and voice. Do not add or remove formality. ' +
+        'Only correct errors, not style.',
       academic:
-        'Use precise, formal language. Well-structured sentences. Objective tone. ' +
-        'Suitable for academic papers. Do NOT translate — write in the same language as the input.'
+        'Fix grammar, spelling, and clarity. ' +
+        'Preserve the author\'s tone and voice. ' +
+        'Do NOT translate — write in the same language as the input.'
     };
     const style     = settings?.style || DEFAULT_STYLE;
     const styleNote = styleInstructions[style] ?? styleInstructions.easy;
